@@ -5,7 +5,7 @@ class NoteService {
 
   List<Note> get notes => _notes;
 
-  // ✅ Метод для добавления заметки
+  // для добавления заметки
   void addNote(String title) {
     _notes.add(Note(title: title, content: ""));
   }
