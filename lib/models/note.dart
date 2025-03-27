@@ -1,6 +1,11 @@
+import 'dart:ui';
 class Note {
   String title;
   String content;
-
-  Note({required this.title, required this.content});
+  List<Offset>? drawing;
+  Note({required this.title,
+   required this.content,
+   this.drawing = const[],
+   });
 }
+

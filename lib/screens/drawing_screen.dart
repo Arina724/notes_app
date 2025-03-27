@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'drawing_screen.dart'; 
-import '../models/note.dart';
+import 'package:notes_app/screens/note_editor_screen.dart';
+import '../models/note.dart'; 
 
-class NoteEditorScreen extends StatefulWidget {
+class DrawingScreen extends StatefulWidget {
   final Note note;
 
-  const NoteEditorScreen({super.key, required this.note});
+  const DrawingScreen({super.key, required this.note});
 
   @override
-  State<NoteEditorScreen> createState() => _NoteEditorScreenState();
+  State<DrawingScreen> createState() => _DrawingScreenState ();
 }
 
-class _NoteEditorScreenState extends State<NoteEditorScreen> {
+class _DrawingScreenState extends State<DrawingScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
 
@@ -37,18 +37,18 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         title: const Text('Редактор заметки'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.brush),
+            icon: const Icon(Icons.brush), 
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DrawingScreen(note: widget.note),
+                  builder: (context) => NoteEditorScreen (note: widget.note), 
                 ),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.save), 
+            icon: const Icon(Icons.save),
             onPressed: _saveNote,
           ),
         ],
