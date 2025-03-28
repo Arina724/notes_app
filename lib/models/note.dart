@@ -2,10 +2,10 @@ import 'dart:ui';
 class Note {
   String title;
   String content;
-  List<Offset>? drawing;
+  List<List<Offset>>? drawings;
   Note({required this.title,
    required this.content,
-   this.drawing = const[],
-   });
+    List<List<Offset>>? drawings})
+      : drawings = drawings ?? [];
 }
 

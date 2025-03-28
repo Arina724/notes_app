@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/screens/note_editor_screen.dart';
-import '../models/note.dart'; 
+import '../models/note.dart';
 
 class DrawingScreen extends StatefulWidget {
   final Note note;
@@ -8,71 +7,71 @@ class DrawingScreen extends StatefulWidget {
   const DrawingScreen({super.key, required this.note});
 
   @override
-  State<DrawingScreen> createState() => _DrawingScreenState ();
+  _DrawingScreenState createState() => _DrawingScreenState();
 }
 
 class _DrawingScreenState extends State<DrawingScreen> {
-  late TextEditingController _titleController;
-  late TextEditingController _contentController;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.note.title);
-    _contentController = TextEditingController(text: widget.note.content);
-  }
-
-  void _saveNote() {
-    setState(() {
-      widget.note.title = _titleController.text;
-      widget.note.content = _contentController.text;
-    });
-    Navigator.pop(context);
-  }
+  List<Offset?> points = []; // Список точек для рисования
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Редактор заметки'),
+        title: const Text("Рисование"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.brush), 
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NoteEditorScreen (note: widget.note), 
-                ),
-              );
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.save),
-            onPressed: _saveNote,
+            onPressed: () {
+              if (points.isNotEmpty){
+                widget.note.drawings!.add(points.whereType<Offset>().toList());
+              }
+              Navigator.pop(context);// Закрываем экран рисования 
+            },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Заголовок'),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: TextField(
-                controller: _contentController,
-                decoration: const InputDecoration(labelText: 'Содержание'),
-                maxLines: null,
-                expands: true,
-              ),
-            ),
-          ],
+      body: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            points.add(details.localPosition); // Добавляем точку при движении пальца
+          });
+        },
+        onPanEnd: (_) {
+          setState(() {
+            points.add(null); // Разрыв линии при отпускании пальца
+          });
+        },
+        child: CustomPaint(
+          painter: DrawingPainter(points),
+          size: Size.infinite,
         ),
       ),
     );
+  }
+}
+
+// Класс, который рисует линии
+class DrawingPainter extends CustomPainter {
+  final List<Offset?> points;
+
+  DrawingPainter(this.points);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 5.0
+      ..strokeCap = StrokeCap.round;
+
+    for (int i = 0; i < points.length - 1; i++) {
+      if (points[i] != null && points[i + 1] != null) {
+        canvas.drawLine(points[i]!, points[i + 1]!, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true; // Обязательно перерисовываем при обновлении
   }
 }
