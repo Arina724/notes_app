@@ -14,7 +14,7 @@ class NotesApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Notes App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const NotesListScreen(),
+      home: const NoteListScreen(),
     );
   }
 }
