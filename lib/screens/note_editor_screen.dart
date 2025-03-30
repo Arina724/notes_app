@@ -67,6 +67,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               onPressed: _saveNote,
               child: const Text('Сохранить'),
             ),
+            
           ElevatedButton(
             onPressed: () {
               Navigator.push(
