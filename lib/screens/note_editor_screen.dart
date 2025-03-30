@@ -13,18 +13,28 @@ class NoteEditorScreen extends StatefulWidget {
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   late TextEditingController _titleController;
+  late TextEditingController _contentController;
 
   @override
   void initState() {
     super.initState();
     // Инициализация контроллера для заголовка
     _titleController = TextEditingController(text: widget.note.title);
+     _contentController = TextEditingController(text: widget.note.content);
   }
 
   @override
   void dispose() {
-    _titleController.dispose(); // Не забываем освободить ресурсы
+    _titleController.dispose(); 
     super.dispose();
+  }
+  void _saveNote() {
+    setState(() {
+      widget.note.title = _titleController.text;
+      widget.note.content = _contentController.text;
+    });
+
+    Navigator.pop(context, widget.note);
   }
 
   @override
@@ -52,6 +62,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               maxLines: null,
             ),
           ),
+          const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _saveNote,
+              child: const Text('Сохранить'),
+            ),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
