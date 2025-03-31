@@ -18,16 +18,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   @override
   void initState() {
     super.initState();
-    // Инициализация контроллера для заголовка
     _titleController = TextEditingController(text: widget.note.title);
-     _contentController = TextEditingController(text: widget.note.content);
+    _contentController = TextEditingController(text: widget.note.content);
   }
 
   @override
   void dispose() {
-    _titleController.dispose(); 
+    _titleController.dispose();
+    _contentController.dispose();
     super.dispose();
   }
+
   void _saveNote() {
     setState(() {
       widget.note.title = _titleController.text;
@@ -40,7 +41,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Редактировать заметку')),
+      appBar: AppBar(title: const Text('Редактировать заметку')),
       body: Column(
         children: [
           Padding(
@@ -48,7 +49,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             child: TextField(
               controller: _titleController,
               onChanged: (text) {
-                widget.note.title = text;  // Обновляем заголовок в модели
+                widget.note.title = text;
               },
               decoration: const InputDecoration(hintText: "Введите заголовок..."),
             ),
@@ -56,18 +57,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
-              controller: TextEditingController(text: widget.note.content),
+              controller: _contentController,
               onChanged: (text) => widget.note.content = text,
               decoration: const InputDecoration(hintText: "Введите текст..."),
               maxLines: null,
             ),
           ),
           const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveNote,
-              child: const Text('Сохранить'),
-            ),
-            
+          ElevatedButton(
+            onPressed: _saveNote,
+            child: const Text('Сохранить'),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -75,20 +75,20 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 MaterialPageRoute(
                   builder: (context) => DrawingScreen(note: widget.note),
                 ),
-              ).then((_) => setState(() {})); // Обновляем экран после возврата
+              ).then((_) => setState(() {}));
             },
             child: const Text("Добавить рисунок"),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: widget.note.drawings!.length,
+              itemCount: widget.note.drawings?.length ?? 0,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: AspectRatio(
                     aspectRatio: 1.5,
                     child: CustomPaint(
-                      painter: DrawingPainter(widget.note.drawings![index]),
+                      painter: DrawingPainter([widget.note.drawings![index]]), 
                       size: Size.infinite,
                     ),
                   ),
