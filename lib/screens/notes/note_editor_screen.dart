@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:typed_data';
 import '../../models/note.dart';
 import 'drawing_screen.dart';
 
@@ -29,10 +32,18 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     super.dispose();
   }
 
+  // Сохранение заметки в Firestore
   void _saveNote() {
     setState(() {
       widget.note.title = _titleController.text;
       widget.note.content = _contentController.text;
+    });
+
+    // Сохраняем данные заметки в Firestore, включая рисунки
+    FirebaseFirestore.instance.collection('notes').doc(widget.note.id).set({
+      'title': widget.note.title,
+      'content': widget.note.content,
+      'drawings': widget.note.drawings, // Сохраняем список координат рисования
     });
 
     Navigator.pop(context, widget.note);
@@ -69,26 +80,35 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             child: const Text('Сохранить'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              // Открытие экрана для рисования
+              final drawingData = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => DrawingScreen(note: widget.note),
                 ),
-              ).then((_) => setState(() {}));
+              );
+
+              if (drawingData != null) {
+                // Добавляем список точек рисования в заметку
+                setState(() {
+                  widget.note.drawings = drawingData; // Передаем список точек для рисования
+                });
+              }
             },
             child: const Text("Добавить рисунок"),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: widget.note.drawings.length ?? 0,
+              itemCount: widget.note.drawings.length,
               itemBuilder: (context, index) {
+                List<Offset> drawingPoints = widget.note.drawings[index]; // Список точек
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: AspectRatio(
                     aspectRatio: 1.5,
                     child: CustomPaint(
-                      painter: DrawingPainter([widget.note.drawings[index]]), 
+                      painter: DrawingPainter([widget.note.drawings[index]]), // Передаем список точек
                       size: Size.infinite,
                     ),
                   ),

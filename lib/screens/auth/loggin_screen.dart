@@ -37,7 +37,8 @@ class _LogginScreenState extends State<LogginScreen> {
     if (!isValid) return;
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: login.text.trim(), password: pass.text.trim());
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: login.text.trim(), password: pass.text.trim());
     } on FirebaseAuthException catch (e) {
       print(e.code);
       if (e.code == 'invalid-credential') {
@@ -56,11 +57,6 @@ class _LogginScreenState extends State<LogginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.go(NoteListScreen.path),
-          icon: const Icon(Icons.home),
-          tooltip: 'To Home',
-        ),
         title: const Text('Вход'),
       ),
       body: Padding(
@@ -75,9 +71,10 @@ class _LogginScreenState extends State<LogginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   controller: login,
-                  validator: (email) => email != null && !EmailValidator.validate(email) ? 'Введите email правильно' : null,
+                  validator: (email) => email != null && !EmailValidator.validate(email)
+                      ? 'Введите email правильно'
+                      : null,
                   decoration: const InputDecoration(
-                      //border: OutlineInputBorder(),
                       hintText: 'Введите email'),
                 ),
               ),
@@ -87,7 +84,9 @@ class _LogginScreenState extends State<LogginScreen> {
                   autocorrect: false,
                   controller: pass,
                   obscureText: passView,
-                  validator: (password) => password != null && password.length < 6 ? 'Пароль должен быть не короче 6 символов' : null,
+                  validator: (password) => password != null && password.length < 6
+                      ? 'Пароль должен быть не короче 6 символов'
+                      : null,
                   decoration: InputDecoration(
                     hintText: 'Введите пароль',
                     suffix: InkWell(

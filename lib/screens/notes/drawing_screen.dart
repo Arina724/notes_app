@@ -5,7 +5,6 @@ class DrawingScreen extends StatefulWidget {
   final Note note;
 
   const DrawingScreen({super.key, required this.note});
-  static String path = '/logout';
 
   @override
   _DrawingScreenState createState() => _DrawingScreenState();
@@ -32,6 +31,15 @@ class _DrawingScreenState extends State<DrawingScreen> {
     }
   }
 
+  void _saveDrawing() {
+    if (_drawingHistory.isNotEmpty) {
+      // Возвращаем список точек рисования в NoteEditorScreen
+      Navigator.pop(context, _drawingHistory); 
+    } else {
+      Navigator.pop(context);  // Если ничего не нарисовано, просто закрываем экран
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,12 +48,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: () {
-              if (_drawingHistory.isNotEmpty) {
-                widget.note.drawings.addAll(_drawingHistory);
-              }
-              Navigator.pop(context);
-            },
+            onPressed: _saveDrawing, // Сохранение данных
           ),
         ],
       ),
@@ -92,7 +95,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
   }
 }
 
-// Класс, который рисует линии
 class DrawingPainter extends CustomPainter {
   final List<List<Offset>> drawingHistory;
 
