@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../models/note.dart';
 
 class DrawingScreen extends StatefulWidget {
-  final Note note;
+  final List<List<Offset>> initialDrawing;  // Параметр для начальных данных рисования
 
-  const DrawingScreen({super.key, required this.note});
-  static String path = '/logout';
+  const DrawingScreen({super.key, required this.initialDrawing});  // Конструктор с required параметром
 
   @override
   _DrawingScreenState createState() => _DrawingScreenState();
@@ -15,6 +13,13 @@ class _DrawingScreenState extends State<DrawingScreen> {
   List<List<Offset>> _drawingHistory = [];
   List<List<Offset>> _redoStack = [];
   List<Offset> _currentStroke = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Инициализируем историей рисунков, переданных из NoteEditorScreen
+    _drawingHistory = List.from(widget.initialDrawing);
+  }
 
   void _undo() {
     if (_drawingHistory.isNotEmpty) {
@@ -41,10 +46,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: () {
-              if (_drawingHistory.isNotEmpty) {
-                widget.note.addDrawing(_drawingHistory);
-              }
-              Navigator.pop(context);
+              Navigator.pop(context, _drawingHistory);  // Возвращаем обновленные рисунки
             },
           ),
         ],
@@ -78,12 +80,12 @@ class _DrawingScreenState extends State<DrawingScreen> {
         children: [
           FloatingActionButton(
             onPressed: _undo,
-            child: Icon(Icons.undo),
+            child: const Icon(Icons.undo),
             tooltip: "Отменить",
           ),
           FloatingActionButton(
             onPressed: _redo,
-            child: Icon(Icons.redo),
+            child: const Icon(Icons.redo),
             tooltip: "Вернуть",
           ),
         ],
@@ -92,7 +94,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
   }
 }
 
-// Класс, который рисует линии
+// Класс для рисования
 class DrawingPainter extends CustomPainter {
   final List<List<Offset>> drawingHistory;
 

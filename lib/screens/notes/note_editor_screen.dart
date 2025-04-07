@@ -31,20 +31,28 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   }
 
   // Сохранение заметки в Firestore
-  void _saveNote() {
+  Future<void> _saveNote() async {
     setState(() {
       widget.note.title = _titleController.text;
       widget.note.content = _contentController.text;
     });
 
-    // Сохраняем данные заметки в Firestore, включая рисунки
-    FirebaseFirestore.instance.collection('notes').doc(widget.note.id).set({
-      'title': widget.note.title,
-      'content': widget.note.content,
-      'drawings': widget.note.drawings, // Сохраняем список координат рисования
-    });
+    try {
+      // Сохраняем данные заметки в Firestore, включая рисунки
+      await FirebaseFirestore.instance.collection('notes').doc(widget.note.id).set({
+        'title': widget.note.title,
+        'content': widget.note.content,
+        'drawings': widget.note.drawings, // Сохраняем список координат рисования
+      });
 
-    Navigator.pop(context, widget.note);
+      // После успешного сохранения возвращаемся на предыдущий экран
+      if (mounted) {
+        Navigator.pop(context, widget.note);
+      }
+    } catch (e) {
+      // Обработка ошибок, если сохранение не удалось
+      print("Ошибка при сохранении заметки: $e");
+    }
   }
 
   @override
@@ -74,45 +82,47 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: _saveNote,
+            onPressed: _saveNote, // Теперь вызываем _saveNote с await
             child: const Text('Сохранить'),
           ),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              // Открытие экрана для рисования
+              // Открытие экрана для рисования и передача текущих рисунков
               final drawingData = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DrawingScreen(note: widget.note),
+                  builder: (context) => DrawingScreen(initialDrawing: widget.note.drawings),  // Передаем текущие рисунки
                 ),
               );
 
               if (drawingData != null) {
-                // Добавляем список точек рисования в заметку
                 setState(() {
-                  widget.note.drawings = drawingData; // Передаем список точек для рисования
+                  widget.note.drawings = drawingData; // Обновляем данные рисования в заметке
                 });
               }
             },
+            
             child: const Text("Добавить рисунок"),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: widget.note.drawings.length,
-              itemBuilder: (context, index) {
-                List<Offset> drawingPoints = widget.note.drawings[index]; // Список точек
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: AspectRatio(
-                    aspectRatio: 1.5,
-                    child: CustomPaint(
-                      painter: DrawingPainter([widget.note.drawings[index]]), // Передаем список точек
-                      size: Size.infinite,
-                    ),
+            child: widget.note.drawings.isEmpty
+                ? Center(child: Text("Нет рисунков"))
+                : ListView.builder(
+                    itemCount: widget.note.drawings.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: AspectRatio(
+                          aspectRatio: 1.5,
+                          child: CustomPaint(
+                            painter: DrawingPainter([widget.note.drawings[index]]), // Рисуем с переданными точками
+                            size: Size.infinite,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

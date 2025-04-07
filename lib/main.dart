@@ -57,7 +57,10 @@ void main() async {
               body: Center(child: Text('Ошибка: нет заметки')),
             );
           }
-          return DrawingScreen(note: note);
+          // Используем field 'drawings' для передачи рисунков
+          return DrawingScreen(
+            initialDrawing: note.drawings ?? [], // передаем начальные данные рисования или пустой список
+          );
         },
       ),
     ],
