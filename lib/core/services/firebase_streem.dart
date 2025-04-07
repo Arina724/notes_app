@@ -17,10 +17,9 @@ class FirebaseStreem extends StatelessWidget {
               child: Text('Что-то пошло не так'),
             ),
           );
-        } else if (snapshot.hasData) {
-          return const NoteListScreen();
         } else {
           return const NoteListScreen();
+        
         }
       },
     );

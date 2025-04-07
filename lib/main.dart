@@ -1,14 +1,20 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:notes_app/screens/auth/loggin_screen.dart';
-import 'package:notes_app/screens/auth/logout.dart';
-import 'package:notes_app/screens/auth/register_screen.dart';
-import 'package:notes_app/screens/notes/drawing_screen.dart';
+import 'package:notes_app/core/services/auth_service.dart';
+import 'package:notes_app/core/services/note_service.dart';
+import 'package:notes_app/cubits/auth_cubit.dart/auth_cubit.dart';
+import 'package:notes_app/cubits/auth_cubit.dart/auth_state.dart';
+import 'package:notes_app/cubits/notes_cubit/notes_cubit.dart';
+
 import 'firebase_options.dart';
-import 'screens/notes/notes_list_screen.dart';
 import 'models/note.dart';
+import 'screens/auth/loggin_screen.dart';
+import 'screens/auth/logout.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/notes/drawing_screen.dart';
+import 'screens/notes/notes_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,18 +22,20 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  final authService = AuthService();
+  final noteService = NoteService();
+
   final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',
         builder: (context, state) {
-          return StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+          return BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              if (state is AuthLoading) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasData) {
+              } else if (state is AuthAuthenticated) {
                 return const NoteListScreen();
               } else {
                 return const LogginScreen();
@@ -39,9 +47,7 @@ void main() async {
       GoRoute(path: '/loggin', builder: (context, state) => const LogginScreen()),
       GoRoute(path: '/reg', builder: (context, state) => const RegScreen()),
       GoRoute(path: '/logout', builder: (context, state) => const LogoutScreen()),
-      GoRoute(path: NoteListScreen.path,
-      builder: (context, state) => const NoteListScreen(),
-),
+      GoRoute(path: NoteListScreen.path, builder: (context, state) => const NoteListScreen()),
       GoRoute(
         path: '/drawing',
         builder: (context, state) {
@@ -57,21 +63,42 @@ void main() async {
     ],
   );
 
-  runApp(NotesApp(router: router));
+  runApp(NotesApp(
+    router: router,
+    authService: authService,
+    noteService: noteService,
+  ));
 }
 
 class NotesApp extends StatelessWidget {
   final GoRouter router;
+  final AuthService authService;
+  final NoteService noteService;
 
-  const NotesApp({super.key, required this.router});
+  const NotesApp({
+    super.key,
+    required this.router,
+    required this.authService,
+    required this.noteService,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'Notes App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      routerConfig: router,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(
+          create: (_) => AuthCubit(authService)..checkAuthStatus(),
+        ),
+        BlocProvider<NotesCubit>(
+          create: (_) => NotesCubit(noteService),
+        ),
+      ],
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        title: 'Notes App',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        routerConfig: router,
+      ),
     );
   }
 }

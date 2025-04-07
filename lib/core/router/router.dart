@@ -8,6 +8,9 @@ class Routers1 {
   static final GoRouter router = GoRouter(initialLocation: NoteListScreen.path, routes: [
     GoRoute(
       path: NoteListScreen.path,
+      //redirect: (context, state) {
+        //if (init)
+      //},
       builder: (context, state) => const NoteListScreen(),
     ),
     GoRoute(

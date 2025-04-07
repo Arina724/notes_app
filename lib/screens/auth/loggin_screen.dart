@@ -38,27 +38,29 @@ class _LogginScreenState extends State<LogginScreen> {
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: login.text.trim(), password: pass.text.trim());
+        email: login.text.trim(),
+        password: pass.text.trim(),
+      );
     } on FirebaseAuthException catch (e) {
       print(e.code);
       if (e.code == 'invalid-credential') {
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Неверные почта или пароль'),
-          backgroundColor: Colors.redAccent,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Неверные почта или пароль'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
       return;
     }
-    context.go(NoteListScreen.path);
+    if (mounted) context.go(NoteListScreen.path);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Вход'),
-      ),
+      appBar: AppBar(title: const Text('Вход')),
       body: Padding(
         padding: const EdgeInsets.all(15),
         child: Form(
@@ -71,11 +73,12 @@ class _LogginScreenState extends State<LogginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   controller: login,
-                  validator: (email) => email != null && !EmailValidator.validate(email)
-                      ? 'Введите email правильно'
-                      : null,
-                  decoration: const InputDecoration(
-                      hintText: 'Введите email'),
+                  validator:
+                      (email) =>
+                          email != null && !EmailValidator.validate(email)
+                              ? 'Введите email правильно'
+                              : null,
+                  decoration: const InputDecoration(hintText: 'Введите email'),
                 ),
               ),
               SizedBox(
@@ -84,9 +87,11 @@ class _LogginScreenState extends State<LogginScreen> {
                   autocorrect: false,
                   controller: pass,
                   obscureText: passView,
-                  validator: (password) => password != null && password.length < 6
-                      ? 'Пароль должен быть не короче 6 символов'
-                      : null,
+                  validator:
+                      (password) =>
+                          password != null && password.length < 6
+                              ? 'Пароль должен быть не короче 6 символов'
+                              : null,
                   decoration: InputDecoration(
                     hintText: 'Введите пароль',
                     suffix: InkWell(
@@ -99,14 +104,13 @@ class _LogginScreenState extends State<LogginScreen> {
                   ),
                 ),
               ),
-              Container(
-                height: 30,
-              ),
+              Container(height: 30),
               ElevatedButton(onPressed: signin, child: const Text('Войти')),
-              Container(
-                height: 30,
+              Container(height: 30),
+              TextButton(
+                onPressed: () => context.go(RegScreen.path),
+                child: const Text('Регистрация'),
               ),
-              TextButton(onPressed: () => context.go(RegScreen.path), child: const Text('Регистрация'))
             ],
           ),
         ),
