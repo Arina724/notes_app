@@ -7,7 +7,7 @@ import 'package:notes_app/core/services/firestore_service.dart';
 
 class NoteListScreen extends StatefulWidget {
   const NoteListScreen({super.key});
-  static const path = '/notelistscreen';
+  static const String path = '/notes';
 
   @override
   _NoteListScreenState createState() => _NoteListScreenState();

@@ -3,59 +3,65 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notes_app/screens/auth/loggin_screen.dart';
 
-class LogoutScreen extends StatefulWidget {
+class LogoutScreen extends StatelessWidget {
   const LogoutScreen({super.key});
   static String path = '/logout';
 
-  @override
-  State<LogoutScreen> createState() => _LogoutScreenState();
-}
-
-class _LogoutScreenState extends State<LogoutScreen> {
-  final user = FirebaseAuth.instance.currentUser;
-
-  Future<void> signOut() async {
+  void _signOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
       context.go(LogginScreen.path);
     } on FirebaseAuthException catch (e) {
       print(e);
-    } finally {}
+    }
+  }
+
+  void _handleBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/notes');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back),
+          onPressed: () => _handleBack(context),
         ),
         title: const Text('Аккаунт'),
         actions: [
           IconButton(
-            padding: const EdgeInsets.fromLTRB(0, 0, 50, 0),
-            onPressed: signOut,
+            padding: const EdgeInsets.only(right: 20),
             icon: const Icon(Icons.logout_rounded),
+            onPressed: () => _signOut(context),
           ),
         ],
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.mail_outline,
-                  color: Colors.black,
-                ),
-                Text('Ваша почта: '),
+                Icon(Icons.mail_outline, color: Colors.black),
+                SizedBox(width: 8),
+                Text('Ваша почта:'),
               ],
             ),
-            Text('${user?.email}'),
-            TextButton(onPressed: signOut, child: const Text('Выйти')),
+            const SizedBox(height: 8),
+            Text(user?.email ?? 'Неизвестный пользователь'),
+            const SizedBox(height: 20),
+            TextButton(
+              onPressed: () => _signOut(context),
+              child: const Text('Выйти'),
+            ),
           ],
         ),
       ),
