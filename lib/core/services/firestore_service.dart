@@ -26,18 +26,23 @@ class FirestoreStore {
     await _firestore.collection('users').doc(currentUser!.uid).collection('notes').add({
       'title': 'Новая заметка',
       'content': '',
-      'drawings': [],
+      'drawings': [],  // Пустой список для рисунков
     });
   }
 
   // Обновление заметки
   Future<void> updateNote(Note note) async {
-    await _firestore
-        .collection('users')
-        .doc(currentUser!.uid)
-        .collection('notes')
-        .doc(note.id)
-        .update(note.toMap());
+    try {
+      // Преобразуем объект Note в Map и сохраняем в Firestore
+      await _firestore
+          .collection('users')
+          .doc(currentUser!.uid)
+          .collection('notes')
+          .doc(note.id)
+          .update(note.toMap());  // Используем toMap для правильной сериализации данных
+    } catch (e) {
+      print("Ошибка при обновлении заметки: $e");
+    }
   }
 
   // Удаление заметки

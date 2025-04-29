@@ -38,19 +38,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     });
 
     try {
-      // Сохраняем данные заметки в Firestore, включая рисунки
-      await FirebaseFirestore.instance.collection('notes').doc(widget.note.id).set({
-        'title': widget.note.title,
-        'content': widget.note.content,
-        'drawings': widget.note.drawings, // Сохраняем список координат рисования
-      });
+      // Сохраняем данные заметки, включая рисунки
+      await FirebaseFirestore.instance
+          .collection('users')  // добавляем коллекцию пользователя
+          .doc(widget.note.id) // по ID заметки
+          .set(widget.note.toMap());
 
-      // После успешного сохранения возвращаемся на предыдущий экран
+      // После успешного сохранения, возвращаемся на экран всех заметок
       if (mounted) {
         Navigator.pop(context, widget.note);
       }
     } catch (e) {
-      // Обработка ошибок, если сохранение не удалось
       print("Ошибка при сохранении заметки: $e");
     }
   }
@@ -82,32 +80,32 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: _saveNote, // Теперь вызываем _saveNote с await
+            onPressed: _saveNote,
             child: const Text('Сохранить'),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              // Открытие экрана для рисования и передача текущих рисунков
+              // Открытие экрана рисования с пустым списком (для нового рисунка)
               final drawingData = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DrawingScreen(initialDrawing: widget.note.drawings),  // Передаем текущие рисунки
+                  builder: (context) => DrawingScreen(initialDrawing: []),
                 ),
               );
 
               if (drawingData != null) {
                 setState(() {
-                  widget.note.drawings = drawingData; // Обновляем данные рисования в заметке
+                  // Добавляем новый рисунок в заметку
+                  widget.note.drawings.addAll(drawingData);
                 });
               }
             },
-            
             child: const Text("Добавить рисунок"),
           ),
           Expanded(
             child: widget.note.drawings.isEmpty
-                ? Center(child: Text("Нет рисунков"))
+                ? const Center(child: Text("Нет рисунков"))
                 : ListView.builder(
                     itemCount: widget.note.drawings.length,
                     itemBuilder: (context, index) {
@@ -116,7 +114,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                         child: AspectRatio(
                           aspectRatio: 1.5,
                           child: CustomPaint(
-                            painter: DrawingPainter([widget.note.drawings[index]]), // Рисуем с переданными точками
+                            painter: DrawingPainter([widget.note.drawings[index]]),
                             size: Size.infinite,
                           ),
                         ),

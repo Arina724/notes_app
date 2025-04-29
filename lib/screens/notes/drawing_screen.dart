@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class DrawingScreen extends StatefulWidget {
-  final List<List<Offset>> initialDrawing;  // Параметр для начальных данных рисования
+  final List<List<Offset>> initialDrawing;
 
-  const DrawingScreen({super.key, required this.initialDrawing});  // Конструктор с required параметром
+  const DrawingScreen({super.key, required this.initialDrawing});
 
   @override
   _DrawingScreenState createState() => _DrawingScreenState();
@@ -17,7 +17,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
   @override
   void initState() {
     super.initState();
-    // Инициализируем историей рисунков, переданных из NoteEditorScreen
     _drawingHistory = List.from(widget.initialDrawing);
   }
 
@@ -46,7 +45,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: () {
-              Navigator.pop(context, _drawingHistory);  // Возвращаем обновленные рисунки
+              Navigator.pop(context, _drawingHistory);
             },
           ),
         ],
@@ -94,7 +93,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
   }
 }
 
-// Класс для рисования
 class DrawingPainter extends CustomPainter {
   final List<List<Offset>> drawingHistory;
 
