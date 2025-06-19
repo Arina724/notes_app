@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/note.dart';
-import 'drawing_screen.dart';
+import 'package:notes_app/screens/notes/drawing_screen.dart';
 
 class NoteEditorScreen extends StatefulWidget {
   final Note note;
@@ -30,7 +30,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     super.dispose();
   }
 
-  // Сохранение заметки в Firestore
   Future<void> _saveNote() async {
     setState(() {
       widget.note.title = _titleController.text;
@@ -38,19 +37,23 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     });
 
     try {
-      // Сохраняем данные заметки, включая рисунки
       await FirebaseFirestore.instance
-          .collection('users')  // добавляем коллекцию пользователя
-          .doc(widget.note.id) // по ID заметки
+          .collection('users')
+          .doc(widget.note.id)
           .set(widget.note.toMap());
 
-      // После успешного сохранения, возвращаемся на экран всех заметок
       if (mounted) {
         Navigator.pop(context, widget.note);
       }
     } catch (e) {
       print("Ошибка при сохранении заметки: $e");
     }
+  }
+
+  void _clearDrawings() {
+    setState(() {
+      widget.note.drawings.clear();
+    });
   }
 
   @override
@@ -78,52 +81,85 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               maxLines: null,
             ),
           ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _saveNote,
-            child: const Text('Сохранить'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              // Открытие экрана рисования с пустым списком (для нового рисунка)
-              final drawingData = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DrawingScreen(initialDrawing: []),
-                ),
-              );
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: _saveNote,
+                child: const Text('Сохранить'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final drawingData = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DrawingScreen(initialDrawing: []),
+                    ),
+                  );
 
-              if (drawingData != null) {
-                setState(() {
-                  // Добавляем новый рисунок в заметку
-                  widget.note.drawings.addAll(drawingData);
-                });
-              }
-            },
-            child: const Text("Добавить рисунок"),
+                  if (drawingData != null) {
+                    setState(() {
+                      widget.note.drawings.addAll(drawingData);
+                    });
+                  }
+                },
+                child: const Text("Добавить рисунок"),
+              ),
+              ElevatedButton(
+                onPressed: _clearDrawings,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                ),
+                child: const Text("Очистить"),
+              ),
+            ],
           ),
+          const SizedBox(height: 10),
           Expanded(
             child: widget.note.drawings.isEmpty
                 ? const Center(child: Text("Нет рисунков"))
-                : ListView.builder(
-                    itemCount: widget.note.drawings.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: AspectRatio(
-                          aspectRatio: 1.5,
-                          child: CustomPaint(
-                            painter: DrawingPainter([widget.note.drawings[index]]),
-                            size: Size.infinite,
-                          ),
+                : Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: AspectRatio(
+                        aspectRatio: 1.5,
+                        child: CustomPaint(
+                          painter: _DrawingPainter(widget.note.drawings),
+                          size: Size.infinite,
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
           ),
         ],
       ),
     );
+  }
+}
+
+// DrawingPainter 
+class _DrawingPainter extends CustomPainter {
+  final List<List<Offset>> strokes;
+
+  _DrawingPainter(this.strokes);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color.fromARGB(255, 1, 0, 2)
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 4.0;
+
+    for (final stroke in strokes) {
+      for (int i = 0; i < stroke.length - 1; i++) {
+        canvas.drawLine(stroke[i], stroke[i + 1], paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DrawingPainter oldDelegate) {
+    return oldDelegate.strokes != strokes;
   }
 }
