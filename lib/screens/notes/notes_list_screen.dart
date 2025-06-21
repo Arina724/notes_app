@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:notes_app/cubits/notes_cubit/notes_cubit.dart';
 import 'package:notes_app/models/note.dart';
 import 'package:notes_app/screens/auth/logout.dart';
 import 'package:notes_app/screens/notes/note_editor_screen.dart';
-import 'package:notes_app/core/services/firestore_service.dart';
 
 class NoteListScreen extends StatefulWidget {
   const NoteListScreen({super.key});
@@ -14,7 +15,6 @@ class NoteListScreen extends StatefulWidget {
 }
 
 class _NoteListScreenState extends State<NoteListScreen> {
-  final FirestoreStore _firestoreStore = FirestoreStore();
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +22,7 @@ class _NoteListScreenState extends State<NoteListScreen> {
       appBar: AppBar(
         title: const Text('Заметки'),
         actions: [
+          IconButton(onPressed: () => context.read<NotesCubit>().loadNotes(), icon: const Icon(Icons.replay_outlined)),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Выйти',
@@ -29,20 +30,22 @@ class _NoteListScreenState extends State<NoteListScreen> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Note>>(
-        stream: _firestoreStore.getNotesStream(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          List<Note> notes = snapshot.data!;
-
+      body: BlocBuilder<NotesCubit, NotesState>(builder: (context, state){
+        
+        if(state is NotesLoading ){
+          return Center( child: CircularProgressIndicator());
+        } else if(state is NotesError){
+          return Center( child: Text(state.props.toString()));
+        } else if (state is NotesLoaded){
+          List<Note> notes = state.notes;
+          if (notes.isEmpty){
+            return Center(child: Text('Нет заметок'));
+          }else {
           return ListView.builder(
             itemCount: notes.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(notes[index].title),
+                title: Text(notes[index].title == '' ? 'новая заметка': notes[index].title),
                 onTap: () async {
                   final updatedNote = await Navigator.push(
                     context,
@@ -52,22 +55,21 @@ class _NoteListScreenState extends State<NoteListScreen> {
                   );
 
                   if (updatedNote != null) {
-                    await _firestoreStore.updateNote(updatedNote);
+                    await context.read<NotesCubit>().updateNote(updatedNote);
                   }
                 },
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _firestoreStore.deleteNote(notes[index].id),
+                  onPressed: () => context.read<NotesCubit>().deleteNote(notes[index].id),
                 ),
               );
             },
-          );
-        },
-      ),
+          );}
+        } else {
+            return Center( child: Text('что-то не то'));
+        }},),
       floatingActionButton: FloatingActionButton(
-        onPressed: _firestoreStore.addNote,
+        onPressed: () => context.read<NotesCubit>().addNote(),
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
+      ));}}
+  

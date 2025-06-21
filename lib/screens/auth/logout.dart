@@ -28,7 +28,7 @@ class LogoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    return Scaffold(
+    return user != null ? Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -56,11 +56,28 @@ class LogoutScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(user?.email ?? 'Неизвестный пользователь'),
+            Text(user.email ?? 'Неизвестный пользователь'),
             const SizedBox(height: 20),
             TextButton(
               onPressed: () => _signOut(context),
               child: const Text('Выйти'),
+            ),
+          ],
+        ),
+      ) 
+    ) : Scaffold(
+      appBar: AppBar(
+        title: Text('Аккаунт'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Вы не авторизовались!'),
+            Text('Пожалуйста, войдите'),
+            TextButton(
+              onPressed: () => context.go(LogginScreen.path),
+              child: const Text('Войти'),
             ),
           ],
         ),

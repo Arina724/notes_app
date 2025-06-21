@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:notes_app/cubits/notes_cubit/notes_cubit.dart';
 import '../../models/note.dart';
 import 'package:notes_app/screens/notes/drawing_screen.dart';
 
@@ -15,12 +17,14 @@ class NoteEditorScreen extends StatefulWidget {
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
+  late String id;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.note.title);
     _contentController = TextEditingController(text: widget.note.content);
+    id = widget.note.id;
   }
 
   @override
@@ -28,26 +32,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
-  }
-
-  Future<void> _saveNote() async {
-    setState(() {
-      widget.note.title = _titleController.text;
-      widget.note.content = _contentController.text;
-    });
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.note.id)
-          .set(widget.note.toMap());
-
-      if (mounted) {
-        Navigator.pop(context, widget.note);
-      }
-    } catch (e) {
-      print("Ошибка при сохранении заметки: $e");
-    }
   }
 
   void _clearDrawings() {
@@ -59,7 +43,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Редактировать заметку')),
+      appBar: AppBar(title: Text('Редактировать заметку')),
       body: Column(
         children: [
           Padding(
@@ -82,38 +66,48 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+          Scrollbar(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
               ElevatedButton(
-                onPressed: _saveNote,
-                child: const Text('Сохранить'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final drawingData = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DrawingScreen(initialDrawing: []),
-                    ),
-                  );
-
-                  if (drawingData != null) {
-                    setState(() {
-                      widget.note.drawings.addAll(drawingData);
-                    });
-                  }
-                },
-                child: const Text("Добавить рисунок"),
-              ),
-              ElevatedButton(
-                onPressed: _clearDrawings,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
+                  onPressed: (){
+                    context.read<NotesCubit>().updateNote(Note(id: id, title: _titleController.text, content: _contentController.text, drawings: widget.note.drawings));
+                    context.pop();
+                    },
+                  child: const Text('Сохранить'),
                 ),
-                child: const Text("Очистить"),
-              ),
-            ],
+                ElevatedButton(
+                  onPressed: () async {
+                    final drawingData = await context.push<List<List<Offset>>>(
+                       '/drawing',
+                        extra: widget.note.drawings
+                        ///<List<List<Offset>>>[],
+                      );
+                    // final List<List<Offset>>? drawingData = await Navigator.push(
+                    //   context,
+                    //   context.push('/drawing')(
+                    //     builder: (context) => DrawingScreen(initialDrawing: []),
+                    //   ),
+                    // );
+                              
+                    if (drawingData != null) {
+                      setState(() {
+                        widget.note.drawings.addAll(drawingData);
+                      });
+                    }
+                  },
+                  child: const Text("Добавить рисунок"),
+                ),
+                ElevatedButton(
+                  onPressed: _clearDrawings,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: const Text("Очистить"),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           Expanded(

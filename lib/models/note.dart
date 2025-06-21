@@ -28,18 +28,19 @@ class Note {
           .toList(),
     };
   }
+  
 
   // Создание объекта Note из Firestore
   factory Note.fromMap(String id, Map<String, dynamic> data) {
     return Note(
       id: id,
-      title: data['title'] ?? '',
-      content: data['content'] ?? '',
-      drawings: (data['drawings'] as List<dynamic>? ?? [])
-          .map((stroke) => (stroke as List<dynamic>)
+      title: data['title'] as String? ?? '',
+      content: data['content'] as String? ?? '',
+      drawings: (data['drawings'] as List<dynamic>?)
+          ?.map((stroke) => (stroke as List<dynamic>)
               .map((point) => Offset((point as Map<String, dynamic>)['dx'], point['dy']))
               .toList())
-          .toList(),
+          .toList()??[],
     );
   }
 }

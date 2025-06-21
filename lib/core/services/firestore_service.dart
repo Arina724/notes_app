@@ -21,10 +21,26 @@ class FirestoreStore {
     });
   }
 
+  Future<List<Note>> getNotesOnce() async {
+  final snapshot = await _firestore
+      .collection('users')
+      .doc(currentUser!.uid)
+      .collection('notes')
+      .get();
+
+  return snapshot.docs.map((doc) => Note(
+    id: doc.id,
+    title: doc['title'] ?? '',
+    content: doc['content'] ?? '',
+    drawings: [], // или правильно обработай drawings
+  )).toList();
+}
+
+
   // Добавление новой заметки
   Future<void> addNote() async {
     await _firestore.collection('users').doc(currentUser!.uid).collection('notes').add({
-      'title': 'Новая заметка',
+      'title': '',
       'content': '',
       'drawings': [],  // Пустой список для рисунков
     });

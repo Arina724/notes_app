@@ -49,20 +49,27 @@ void main() async {
       GoRoute(path: '/logout', builder: (context, state) => const LogoutScreen()),
       GoRoute(path: NoteListScreen.path, builder: (context, state) => const NoteListScreen()),
       GoRoute(
-        path: '/drawing',
-        builder: (context, state) {
-          final note = state.extra as Note?;
-          if (note == null) {
-            return const Scaffold(
-              body: Center(child: Text('Ошибка: нет заметки')),
-            );
-          }
-          // Используем field 'drawings' для передачи рисунков
-          return DrawingScreen(
-            initialDrawing: note.drawings ?? [], // передаем начальные данные рисования или пустой список
-          );
-        },
-      ),
+      path: '/drawing',
+      builder: (context, state) {
+        final initialDrawing = state.extra as List<List<Offset>>?;
+        return DrawingScreen(initialDrawing: initialDrawing ?? []);
+      },
+    ),
+      // GoRoute(
+      //   path: '/drawing',
+      //   builder: (context, state) {
+      //     final note = state.extra as Note?;
+      //     if (note == null) {
+      //       return const Scaffold(
+      //         body: Center(child: Text('Ошибка: нет заметки')),
+      //       );
+      //     }
+      //     // Используем field 'drawings' для передачи рисунков
+      //     return DrawingScreen(
+      //       initialDrawing: note.drawings ?? [], // передаем начальные данные рисования или пустой список
+      //     );
+      //   },
+      // ),
     ],
   );
 
