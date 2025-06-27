@@ -66,10 +66,25 @@ class _NoteListScreenState extends State<NoteListScreen> {
             },
           );}
         } else {
-            return Center( child: Text('что-то не то'));
+            return Center( child: Text('Обновите список'));
         }},),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.read<NotesCubit>().addNote(),
+        onPressed: () async {  
+          final id =UniqueKey().toString();
+          final newNote = Note(
+    id: id, 
+    title: '',
+    content: '',
+    drawings: [],
+  );
+  context.read<NotesCubit>().addNote(newNote);
+await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NoteEditorScreen(note: newNote),
+                    ),
+                  );   
+        },
         child: const Icon(Icons.add),
       ));}}
   

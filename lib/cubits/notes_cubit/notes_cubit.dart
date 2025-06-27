@@ -26,9 +26,15 @@ class NotesCubit extends Cubit<NotesState> {
     }
   }
 
-  Future<void> addNote() async {
-    await notesService.addNote();
+  Future<void> addNote(Note newNote) async {
+    log('Добавили Note');
+    await notesService.addNewNote(newNote);
     loadNotes(); // после добавления — обновляем список
+  }
+
+  Note getOneNote() {
+    final note = state.props[0];
+    return note as Note;
   }
 
   Future<void> updateNote(Note note) async {
@@ -40,4 +46,5 @@ class NotesCubit extends Cubit<NotesState> {
     await notesService.deleteNote(id);
     loadNotes();
   }
+
 }

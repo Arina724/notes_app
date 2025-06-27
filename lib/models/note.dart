@@ -1,46 +1,72 @@
+import 'dart:developer';
 import 'dart:ui';
+import 'package:flutter/material.dart';
+
+class ColoredStroke {
+  final List<Offset> points;
+  final Color color;
+  final double strokeWidth;
+
+  ColoredStroke({
+    required this.points,
+    required this.color,
+    required this.strokeWidth,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'points': points.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
+      'color': color.value,
+      'strokeWidth': strokeWidth,
+    };
+  }
+
+  factory ColoredStroke.fromMap(Map<String, dynamic> map) {
+    return ColoredStroke(
+      points: (map['points'] as List<dynamic>)
+          .map((point) => Offset(point['dx'], point['dy']))
+          .toList(),
+      color: Color(map['color']),
+      strokeWidth: (map['strokeWidth'] as num).toDouble(),
+    );
+  }
+}
 
 class Note {
   String id;
   String title;
   String content;
-  List<List<Offset>> drawings;
+  List<ColoredStroke> drawings;
 
   Note({
     required this.id,
     required this.title,
     required this.content,
-    List<List<Offset>>? drawings,
+    List<ColoredStroke>? drawings,
   }) : drawings = drawings ?? [];
 
-  // Метод для добавления нового рисунка
-  void addDrawing(List<List<Offset>> newDrawings) {
+  void addDrawing(List<ColoredStroke> newDrawings) {
     drawings.addAll(newDrawings);
   }
 
-  // Преобразование в Map для Firestore
   Map<String, dynamic> toMap() {
     return {
       'title': title,
       'content': content,
-      'drawings': drawings
-          .map((stroke) => stroke.map((point) => {'dx': point.dx, 'dy': point.dy}).toList())
-          .toList(),
+      'drawings': drawings.map((d) => d.toMap()).toList(),
     };
   }
-  
 
-  // Создание объекта Note из Firestore
   factory Note.fromMap(String id, Map<String, dynamic> data) {
+    log("From Map");
     return Note(
       id: id,
       title: data['title'] as String? ?? '',
       content: data['content'] as String? ?? '',
       drawings: (data['drawings'] as List<dynamic>?)
-          ?.map((stroke) => (stroke as List<dynamic>)
-              .map((point) => Offset((point as Map<String, dynamic>)['dx'], point['dy']))
-              .toList())
-          .toList()??[],
+              ?.map((item) => ColoredStroke.fromMap(Map<String, dynamic>.from(item)))
+              .toList() ??
+          [],
     );
   }
 }

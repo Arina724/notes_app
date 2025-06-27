@@ -2,19 +2,22 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:notes_app/core/services/auth_service.dart';
 import 'package:notes_app/core/services/note_service.dart';
 import 'package:notes_app/cubits/auth_cubit.dart/auth_cubit.dart';
 import 'package:notes_app/cubits/auth_cubit.dart/auth_state.dart';
 import 'package:notes_app/cubits/notes_cubit/notes_cubit.dart';
 
+import 'package:notes_app/models/note.dart';
+import 'package:notes_app/screens/auth/loggin_screen.dart';
+import 'package:notes_app/screens/auth/logout.dart';
+import 'package:notes_app/screens/auth/register_screen.dart';
+import 'package:notes_app/screens/notes/notes_list_screen.dart';
+
+import 'package:notes_app/screens/notes/drawing_screen.dart' as drawing_screen;
+
 import 'firebase_options.dart';
-import 'models/note.dart';
-import 'screens/auth/loggin_screen.dart';
-import 'screens/auth/logout.dart';
-import 'screens/auth/register_screen.dart';
-import 'screens/notes/drawing_screen.dart';
-import 'screens/notes/notes_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +35,10 @@ void main() async {
         path: '/',
         builder: (context, state) {
           return BlocBuilder<AuthCubit, AuthState>(
-            builder: (context, state) {
-              if (state is AuthLoading) {
+            builder: (context, authState) {
+              if (authState is AuthLoading) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (state is AuthAuthenticated) {
+              } else if (authState is AuthAuthenticated) {
                 return const NoteListScreen();
               } else {
                 return const LogginScreen();
@@ -44,32 +47,19 @@ void main() async {
           );
         },
       ),
+
       GoRoute(path: '/loggin', builder: (context, state) => const LogginScreen()),
       GoRoute(path: '/reg', builder: (context, state) => const RegScreen()),
       GoRoute(path: '/logout', builder: (context, state) => const LogoutScreen()),
       GoRoute(path: NoteListScreen.path, builder: (context, state) => const NoteListScreen()),
+
       GoRoute(
-      path: '/drawing',
-      builder: (context, state) {
-        final initialDrawing = state.extra as List<List<Offset>>?;
-        return DrawingScreen(initialDrawing: initialDrawing ?? []);
-      },
-    ),
-      // GoRoute(
-      //   path: '/drawing',
-      //   builder: (context, state) {
-      //     final note = state.extra as Note?;
-      //     if (note == null) {
-      //       return const Scaffold(
-      //         body: Center(child: Text('Ошибка: нет заметки')),
-      //       );
-      //     }
-      //     // Используем field 'drawings' для передачи рисунков
-      //     return DrawingScreen(
-      //       initialDrawing: note.drawings ?? [], // передаем начальные данные рисования или пустой список
-      //     );
-      //   },
-      // ),
+        path: '/drawing',
+        builder: (context, state) {
+          final initialDrawing = state.extra as List<ColoredStroke>? ?? [];
+          return drawing_screen.DrawingScreen(initialDrawing: initialDrawing);
+        },
+      ),
     ],
   );
 

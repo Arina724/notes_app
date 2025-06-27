@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notes_app/cubits/notes_cubit/notes_cubit.dart';
-import '../../models/note.dart';
-import 'package:notes_app/screens/notes/drawing_screen.dart';
+import '../../models/note.dart'; 
+import 'drawing_screen.dart'; 
 
 class NoteEditorScreen extends StatefulWidget {
   final Note note;
@@ -25,6 +25,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     _titleController = TextEditingController(text: widget.note.title);
     _contentController = TextEditingController(text: widget.note.content);
     id = widget.note.id;
+    
   }
 
   @override
@@ -40,10 +41,25 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     });
   }
 
+  Future<void> _openDrawingScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DrawingScreen(initialDrawing: widget.note.drawings),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        widget.note.drawings = result;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Редактировать заметку')),
+      appBar: AppBar(title: const Text('Редактировать заметку')),
       body: Column(
         children: [
           Padding(
@@ -70,33 +86,22 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-              ElevatedButton(
-                  onPressed: (){
-                    context.read<NotesCubit>().updateNote(Note(id: id, title: _titleController.text, content: _contentController.text, drawings: widget.note.drawings));
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<NotesCubit>().updateNote(
+                      Note(
+                        id: id,
+                        title: _titleController.text,
+                        content: _contentController.text,
+                        drawings: widget.note.drawings,
+                      ),
+                    );
                     context.pop();
-                    },
+                  },
                   child: const Text('Сохранить'),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    final drawingData = await context.push<List<List<Offset>>>(
-                       '/drawing',
-                        extra: widget.note.drawings
-                        ///<List<List<Offset>>>[],
-                      );
-                    // final List<List<Offset>>? drawingData = await Navigator.push(
-                    //   context,
-                    //   context.push('/drawing')(
-                    //     builder: (context) => DrawingScreen(initialDrawing: []),
-                    //   ),
-                    // );
-                              
-                    if (drawingData != null) {
-                      setState(() {
-                        widget.note.drawings.addAll(drawingData);
-                      });
-                    }
-                  },
+                  onPressed: _openDrawingScreen,
                   child: const Text("Добавить рисунок"),
                 ),
                 ElevatedButton(
@@ -132,28 +137,27 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   }
 }
 
-// DrawingPainter 
 class _DrawingPainter extends CustomPainter {
-  final List<List<Offset>> strokes;
+  final List<ColoredStroke> strokes;
 
   _DrawingPainter(this.strokes);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color.fromARGB(255, 1, 0, 2)
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 4.0;
-
     for (final stroke in strokes) {
-      for (int i = 0; i < stroke.length - 1; i++) {
-        canvas.drawLine(stroke[i], stroke[i + 1], paint);
+      final paint = Paint()
+        ..color = stroke.color
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = stroke.strokeWidth;
+
+      for (int i = 0; i < stroke.points.length - 1; i++) {
+        canvas.drawLine(stroke.points[i], stroke.points[i + 1], paint);
       }
     }
   }
 
   @override
-  bool shouldRepaint(_DrawingPainter oldDelegate) {
+  bool shouldRepaint(covariant _DrawingPainter oldDelegate) {
     return oldDelegate.strokes != strokes;
   }
 }

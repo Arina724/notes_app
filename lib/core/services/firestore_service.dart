@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:notes_app/models/note.dart';
@@ -28,12 +30,29 @@ class FirestoreStore {
       .collection('notes')
       .get();
 
-  return snapshot.docs.map((doc) => Note(
+  return snapshot.docs.map((doc) { 
+    final drawingsData = doc['drawings'] as List<dynamic>? ?? [];
+    
+    // Преобразуем в List<ColoredStroke>
+    final drawings = drawingsData.map((drawing) {
+      return ColoredStroke(
+        points: (drawing['points'] as List<dynamic>).map((point) {
+          return Offset(
+            (point['dx'] as num).toDouble(),
+            (point['dy'] as num).toDouble(),
+          );
+        }).toList(),
+        color: Color(drawing['color'] as int),
+        strokeWidth: (drawing['strokeWidth'] as num).toDouble(),
+      );
+    }).toList();
+    
+    return Note(
     id: doc.id,
     title: doc['title'] ?? '',
     content: doc['content'] ?? '',
-    drawings: [], // или правильно обработай drawings
-  )).toList();
+    drawings: drawings, 
+  );}).toList();
 }
 
 
@@ -42,7 +61,7 @@ class FirestoreStore {
     await _firestore.collection('users').doc(currentUser!.uid).collection('notes').add({
       'title': '',
       'content': '',
-      'drawings': [],  // Пустой список для рисунков
+      'drawings': [], 
     });
   }
 
@@ -55,7 +74,7 @@ class FirestoreStore {
           .doc(currentUser!.uid)
           .collection('notes')
           .doc(note.id)
-          .update(note.toMap());  // Используем toMap для правильной сериализации данных
+          .update(note.toMap()); 
     } catch (e) {
       print("Ошибка при обновлении заметки: $e");
     }

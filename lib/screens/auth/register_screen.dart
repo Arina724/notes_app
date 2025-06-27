@@ -44,11 +44,6 @@ class _RegScreenState extends State<RegScreen> {
   Future<void> signup() async {
     final isValid = keys.currentState!.validate();
     if (!isValid) {
-      // ScaffoldMessenger.of(context).removeCurrentSnackBar();
-      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      //   content: Text('Почта введена неправильно'),
-      //   backgroundColor: Colors.redAccent,
-      // ));
       return;
     }
 
@@ -104,7 +99,6 @@ class _RegScreenState extends State<RegScreen> {
                   controller: login,
                   validator: (email) => email != null && !EmailValidator.validate(email) ? 'Введите email правильно' : null,
                   decoration: const InputDecoration(
-                    //border: OutlineInputBorder(),
                     hintText: 'Введите email',
                     hintStyle: TextStyle(
                       fontSize: 12,
